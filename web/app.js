@@ -109,8 +109,14 @@ function renderViewer(e) {
     if (kind === "html") {
       const f = document.createElement("iframe");
       f.className = "body-html";
+      // sandbox="" blocks scripts/forms/same-origin; the injected CSP blocks
+      // remote content (tracking pixels) so opening an email can't phone home.
       f.setAttribute("sandbox", "");
-      f.srcdoc = e.html;
+      f.setAttribute("referrerpolicy", "no-referrer");
+      const guard = '<meta http-equiv="Content-Security-Policy" ' +
+        'content="default-src \'none\'; style-src \'unsafe-inline\'; ' +
+        'img-src data:; font-src data:">';
+      f.srcdoc = guard + e.html;
       bodyArea.innerHTML = "";
       bodyArea.appendChild(f);
     } else if (kind === "raw") {

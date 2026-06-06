@@ -75,6 +75,30 @@ All settings are environment variables (with sensible defaults):
 | `MAX_PER_ADDRESS` | `20` | Max emails kept per address |
 | `MAX_TOTAL` | `2000` | Global safety cap on stored emails |
 | `SWEEP_INTERVAL_SECONDS` | `300` | How often expired emails are purged |
+| `MAX_MESSAGE_BYTES` | `2097152` | Max accepted SMTP message size (2 MB; advertised as `SIZE`) |
+| `MAX_STORE_BYTES` | `134217728` | Global memory budget for stored mail (128 MB); oldest evicted when exceeded |
+| `SMTP_TIMEOUT` | `30` | Idle timeout per SMTP connection (seconds) |
+| `SMTP_MAX_CONNECTIONS` | `200` | Max concurrent SMTP connections (excess refused `421`) |
+| `SMTP_MSGS_PER_MIN` | `100` | Per-IP SMTP message rate limit |
+| `SMTP_CONNS_PER_MIN` | `200` | Per-IP SMTP connection rate limit |
+| `API_REQS_PER_MIN` | `600` | Per-IP API request rate limit |
+| `ENABLE_DOCS` | `false` | Expose FastAPI `/docs`, `/redoc`, `/openapi.json` |
+| `TLS_CERT_FILE` / `TLS_KEY_FILE` | _(unset)_ | PEM cert + key to enable STARTTLS (plaintext if unset) |
+
+### Security hardening
+
+This server was assessed for security & scalability — see
+[`security.md`](security.md). Implemented hardening (all on by default):
+per-message size limit + global memory budget, per-IP rate limiting (SMTP & API),
+a concurrent-connection cap and low idle timeout, input validation on `test-send`,
+a Content-Security-Policy (app responses **and** the email-viewer iframe, which
+blocks remote tracking pixels), API docs disabled, and AUTH not advertised on
+plaintext. Optional STARTTLS via `TLS_CERT_FILE`/`TLS_KEY_FILE`.
+
+Three findings are intentionally **accepted** because this is a disposable test
+environment: the inbox is public/unauthenticated (don't send real secrets), the
+inbox can be cleared by anyone, and it runs as a single instance. See `security.md`
+for what to change before any production use.
 
 ## Deployment notes
 
@@ -89,9 +113,10 @@ side. To listen on the standard SMTP port 25, either run with privileges/
 
 | File | Purpose |
 |---|---|
-| `app/smtp.py` | aiosmtpd handler: accept-all, parse, store |
-| `app/store.py` | In-memory store with expiry + per-address caps |
-| `app/api.py` | FastAPI: REST API, static UI, test-send, lifespan that starts SMTP + sweeper |
+| `app/smtp.py` | aiosmtpd handler: accept-all, parse, store; size/timeout/rate/conn limits; optional STARTTLS |
+| `app/store.py` | Indexed in-memory store: expiry, per-address caps, global byte budget |
+| `app/api.py` | FastAPI: REST API, static UI, test-send, rate-limit + CSP middleware, lifespan |
+| `app/ratelimit.py` | Tiny thread-safe per-key sliding-window rate limiter |
 | `app/config.py` | Env-driven configuration |
 | `app/main.py` | Entrypoint (uvicorn) |
 | `web/` | Modern vanilla HTML/CSS/JS frontend |
