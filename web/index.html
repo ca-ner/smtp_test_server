@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free SMTP Server for Testing</title>
+  <meta name="description" content="A free capture-all SMTP server for testing. Send email to any address and read it here — no signup, no auth." />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📬</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📬</span>
+      <div>
+        <h1>Free SMTP Test Server</h1>
+        <p class="tagline">Capture-all inbox for testing email — no signup, no auth.</p>
+      </div>
+    </div>
+    <button id="themeToggle" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">🌓</button>
+  </header>
+
+  <main>
+    <!-- Connection settings -->
+    <section class="card settings">
+      <h2>SMTP connection settings</h2>
+      <p class="muted">Point your app's mailer at these settings. Any email sent will be captured below.</p>
+      <div class="setting-grid">
+        <div class="setting">
+          <span class="label">Host</span>
+          <code id="smtpHost">…</code>
+          <button class="copy" data-copy="smtpHost">Copy</button>
+        </div>
+        <div class="setting">
+          <span class="label">Port</span>
+          <code id="smtpPort">…</code>
+          <button class="copy" data-copy="smtpPort">Copy</button>
+        </div>
+        <div class="setting">
+          <span class="label">Auth</span>
+          <code id="smtpAuth">none</code>
+        </div>
+        <div class="setting">
+          <span class="label">Encryption</span>
+          <code>none / optional</code>
+        </div>
+      </div>
+      <p class="note" id="retentionNote"></p>
+    </section>
+
+    <div class="columns">
+      <!-- Left: lookup + list -->
+      <section class="card inbox">
+        <div class="inbox-head">
+          <h2>Inbox</h2>
+          <div class="inbox-actions">
+            <button id="refreshBtn" class="btn ghost" title="Refresh">↻ Refresh</button>
+            <button id="clearBtn" class="btn ghost danger" title="Clear all">🗑 Clear</button>
+          </div>
+        </div>
+        <form id="lookupForm" class="lookup">
+          <input type="text" id="addressInput" placeholder="Filter by sender or recipient address (leave empty for all)" autocomplete="off" />
+          <button type="submit" class="btn">Search</button>
+        </form>
+        <ul id="emailList" class="email-list">
+          <li class="empty">No emails yet. Send one using the form, or configure your app to use the settings above.</li>
+        </ul>
+      </section>
+
+      <!-- Right: viewer + test send -->
+      <section class="card viewer-card">
+        <div id="viewer" class="viewer empty-viewer">
+          <p class="muted">Select an email to read it here.</p>
+        </div>
+
+        <details class="send" id="sendPanel">
+          <summary>✉️ Send a test email</summary>
+          <form id="sendForm" class="send-form">
+            <label>From <input type="text" name="from" value="tester@example.com" /></label>
+            <label>To <input type="text" name="to" value="inbox@example.com" /></label>
+            <label>Subject <input type="text" name="subject" value="Test email" /></label>
+            <label>Body <textarea name="body" rows="4">Hello from the free SMTP test server!</textarea></label>
+            <button type="submit" class="btn">Send test email</button>
+            <span id="sendStatus" class="send-status"></span>
+          </form>
+        </details>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>Open-source capture-all SMTP test server · emails are kept in memory only.</p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
